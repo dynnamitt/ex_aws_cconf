@@ -2,11 +2,12 @@ defmodule AwsCconf.Files do
   @moduledoc """
   Load credentials+config from ~/.aws "SHARED" files
   """
-  @config_env "AWS_CONFIG_FILE"
-  @config_path_default "~/.aws/config"
 
-  @shared_creds_env "AWS_SHARED_CREDENTIALS_FILE"
-  @creds_path_default "~/.aws/credentials"
+  def env_config, do: "AWS_CONFIG_FILE"
+  def config_path_default, do: "~/.aws/config"
+
+  def env_shared_creds, do: "AWS_SHARED_CREDENTIALS_FILE"
+  def creds_path_default, do: "~/.aws/credentials"
 
   @type path :: String.t()
 
@@ -15,8 +16,8 @@ defmodule AwsCconf.Files do
   """
   @spec resolved([path], [String.t()]) :: [keyword]
   def resolved(
-        load_paths \\ [@creds_path_default, @config_path_default],
-        override_path_envs \\ [@shared_creds_env, @config_env]
+        load_paths \\ [creds_path_default(), config_path_default()],
+        override_path_envs \\ [env_shared_creds(), env_config()]
       ) do
     override_path_envs
     |> Enum.zip(load_paths)
