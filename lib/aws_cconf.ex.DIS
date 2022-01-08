@@ -1,0 +1,124 @@
+defmodule AWSCconf do
+  @moduledoc """
+  Load credentials+config from ~/.aws "SHARED" files
+
+  https://github.com/boto/botocore/blob/develop/botocore/credentials.py
+  https://github.com/boto/botocore/blob/develop/botocore/configloader.py
+  https://github.com/boto/botocore/blob/develop/botocore/configprovider.py
+  """
+  config_env = "AWS_CONFIG_FILE"
+  @config_path_default "~/.aws/config"
+
+  shared_creds_env = "AWS_SHARED_CREDENTIALS_FILE"
+  @creds_path_default "~/.aws/credentials"
+  @creds_kv_subset ["aws_access_key_id", "aws_secret_access_key", "aws_session_token"]
+  # OVERLOOK other kv's
+
+  # TRIGGERS for new "STS Session credentials"
+  # TODO structs?
+  @attr_src_p "role_arn"
+  @attr_mfa "mfa_serial"
+  @attr_sso_url "sso_start_url"
+
+  @type path :: String.t()
+
+  @doc """
+  Resolve the path (optionally via env) then open the stream
+  """
+  @spec resolve_files([path], [String.t()]) :: [stream]
+  def resolve_files(
+        load_paths \\ [@creds_path_default, @config_path_default],
+        override_path_envs \\ [shared_creds_env, config_env]
+      ) do
+    override_path_envs
+    |> Enum.zip(load_paths)
+    |> Enum.map(&resolve_path/1)
+    |> Enum.map(
+      &try do
+        File.stream!(&1)
+      rescue
+        e -> {:error, e}
+      end
+    )
+  end
+
+  @doc """
+  Parse & merge config streams.
+
+  Selects a profile (in each stream) then merge the keyvalues.
+
+  .aws/credentials ALWAYS come first,
+  then .aws/config (and more if appended)
+  """
+  @spec load(String.t(), [map]) :: any
+  def load(
+        profile_name \\ "default",
+        loaded_configs
+      ) do
+    [creds | tail] =
+      Enum.zip(override_path_envs, load_paths)
+      |> Enum.map(&resolve_path/1)
+      |> Enum.map(&File.stream!/1)
+      |> IO.inspect()
+
+    [
+      get_credentials_p(creds, profile_name)
+      | Enum.map(tail, &get_config_p(&1, profile_name))
+    ]
+    |> merge_profile_kvs()
+  end
+
+  # Find the path to file
+  @spec resolve_path({String.t(), path}) :: path
+  defp resolve_path({override_env, default_path}) do
+    override_env
+    |> System.get_env()
+    |> case do
+      nil -> default_path
+      path -> path
+    end
+    |> Path.expand()
+  end
+
+  # parse the file-stream
+  @spec parse_file(Path) :: keyword
+  defp parse_file(path) do
+    try do
+      path
+      |> File.stream!()
+      |> ConfigParser.parse_stream()
+    rescue
+      e -> {:error, e.reason}
+    end
+  end
+
+  # FIXME all 3 could be :error !!
+  defp get_credentials_p({:ok, profiles}, profile) do
+    profiles[profile]
+    # TODO Map.filter(@creds_kv_subset)
+  end
+
+  defp get_config_p({:ok, profiles}, profile) when profile == "default" do
+    profiles[profile]
+  end
+
+  defp get_config_p({:ok, profiles}, profile) do
+    profiles
+    |> Map.keys()
+    # TODO compile regex to avoid special-char injection
+    |> Enum.find(&String.match?(&1, ~r/profile\ *#{profile}/))
+    |> then(&profiles[&1])
+  end
+
+  # FIXME both could be nil !!
+  def merge_profile_kvs([cred_profiles | config_profiles_set]) do
+    cred_profiles
+    # |> extract_kvs(@creds_kv_subset)
+    |> then(&[&1 | config_profiles_set])
+    |> Enum.reduce(fn x, acc -> Enum.into(acc, x) end)
+  end
+
+  def extract_kvs(profiles, kv_subset \\ []) do
+    1
+  end
+end
