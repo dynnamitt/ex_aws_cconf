@@ -1,0 +1,25 @@
+[default]
+region=eu-west-1
+cli_pager=
+
+[profile awsops]
+region = eu-west-1
+role_session_name = kfm-cli-awsops
+mfa_serial = arn:aws:iam::nnn:mfa/kmidtlie
+cli_pager=
+
+[profile assume1]
+role_arn = arn:aws:iam::739805770819:role/admin
+source_profile = default
+role_session_name = kfm-cli-qa
+region = eu-west-1
+external_id = BF-NO-11978
+cli_pager=
+
+[profile sso1]
+sso_start_url = https://d-93671bac31.awsapps.com/start
+sso_region = eu-west-1
+sso_account_id = 739805770819
+sso_role_name = TeamAccessDev-TeamDatascience
+region = eu-west-1
+output = json
