@@ -5,7 +5,12 @@ defmodule AwsCconfFileTest do
 
   setup_all do
     t_dir = System.tmp_dir!()
-    t_suffix = s = for _ <- 1..10, into: "", do: <<Enum.random('0123456789abcdef')>>
+
+    t_suffix =
+      for _ <-
+            1..10,
+          into: "",
+          do: <<Enum.random('0123456789abcdef')>>
 
     fix = [
       test_credentials: t_dir <> "/test_credentials_" <> t_suffix,

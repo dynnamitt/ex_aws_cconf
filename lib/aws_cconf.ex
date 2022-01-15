@@ -35,6 +35,9 @@ defmodule AwsCconf do
         [nil, conf_p] ->
           [conf_p]
 
+        [creds_p, nil] ->
+          [creds_p]
+
         [creds_p, conf_p] when strict_creds_subset? ->
           [Map.take(creds_p, @creds_attrs_subset), conf_p]
 
@@ -70,6 +73,7 @@ defmodule AwsCconf do
 
   defp merge_profile_attrs(profile_maps) do
     profile_maps
+    # |> IO.inspect()
     |> Enum.reduce(fn x, acc -> Enum.into(acc, x) end)
   end
 end

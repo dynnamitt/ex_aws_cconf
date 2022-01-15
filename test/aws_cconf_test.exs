@@ -15,6 +15,9 @@ defmodule AwsCconfTest do
           "aws_session_token" => "acdsdcdsbc",
           "_region_" => "will not be loaded default",
           "region" => "nor this"
+        },
+        "only-here" => %{
+          "aws_access_key_id" => "CRED_K_ID"
         }
       },
       test_conf: %{
@@ -50,9 +53,17 @@ defmodule AwsCconfTest do
   end
 
   #
-  test "combines the two maps", ctx do
+  test "combines two maps", ctx do
     result = AwsCconf.combine("default", {ctx.test_creds, ctx.test_conf})
     assert ["aws_access_key_id", "cli_pager", "region"] == Map.keys(result)
+  end
+
+  test "combines MAYBE two maps", ctx do
+    result = AwsCconf.combine("only-here", {ctx.test_creds, ctx.test_conf})
+    assert %{"aws_access_key_id" => "CRED_K_ID"} = result
+
+    result2 = AwsCconf.combine("accesskeys", {ctx.test_creds, ctx.test_conf})
+    assert %{"aws_access_key_id" => "in_conf"} = result2
   end
 
   test "only picks 3 keys (STRICT mode) from credentials", ctx do
