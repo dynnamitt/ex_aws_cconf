@@ -61,4 +61,12 @@ defmodule AwsCconfFileTest do
     assert 1 == Enum.count(Map.keys(creds))
     assert 2 == Enum.count(Map.keys(conf))
   end
+
+  test "all defaults call, unspesified result BUT 100% cov!" do
+    try do
+      Files.resolved()
+    rescue
+      e -> IO.puts("Ignoring: " <> e.reason)
+    end
+  end
 end

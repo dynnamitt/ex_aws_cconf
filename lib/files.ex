@@ -4,10 +4,10 @@ defmodule AwsCconf.Files do
   """
 
   def env_config, do: "AWS_CONFIG_FILE"
-  def config_path_default, do: "~/.aws/config"
+  @config_path_default "~/.aws/config"
 
   def env_shared_creds, do: "AWS_SHARED_CREDENTIALS_FILE"
-  def creds_path_default, do: "~/.aws/credentials"
+  @creds_path_default "~/.aws/credentials"
 
   @type path :: String.t()
   @type overring_os_env :: String.t()
@@ -17,7 +17,7 @@ defmodule AwsCconf.Files do
   """
   @spec resolved([path], [overring_os_env]) :: [keyword]
   def resolved(
-        {p_creds, p_conf} \\ {creds_path_default(), config_path_default()},
+        {p_creds, p_conf} \\ {@creds_path_default, @config_path_default},
         {e_creds, e_conf} \\ {env_shared_creds(), env_config()}
       ) do
     [{e_creds, p_creds}, {e_conf, p_conf}]

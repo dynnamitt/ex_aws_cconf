@@ -54,20 +54,20 @@ defmodule AwsCconfTest do
 
   #
   test "combines two maps", ctx do
-    result = AwsCconf.combine("default", {ctx.test_creds, ctx.test_conf})
+    result = AwsCconf.combine({ctx.test_creds, ctx.test_conf})
     assert ["aws_access_key_id", "cli_pager", "region"] == Map.keys(result)
   end
 
   test "combines MAYBE two maps", ctx do
-    result = AwsCconf.combine("only-here", {ctx.test_creds, ctx.test_conf})
+    result = AwsCconf.combine({ctx.test_creds, ctx.test_conf}, "only-here")
     assert %{"aws_access_key_id" => "CRED_K_ID"} = result
 
-    result2 = AwsCconf.combine("accesskeys", {ctx.test_creds, ctx.test_conf})
+    result2 = AwsCconf.combine({ctx.test_creds, ctx.test_conf}, "accesskeys")
     assert %{"aws_access_key_id" => "in_conf"} = result2
   end
 
   test "only picks 3 keys (STRICT mode) from credentials", ctx do
-    result = AwsCconf.combine("other", {ctx.test_creds, ctx.test_conf})
+    result = AwsCconf.combine({ctx.test_creds, ctx.test_conf}, "other")
 
     assert [
              "aws_access_key_id",
@@ -78,7 +78,7 @@ defmodule AwsCconfTest do
   end
 
   test "all keys (NON strict) from credentials", ctx do
-    result = AwsCconf.combine("other", {ctx.test_creds, ctx.test_conf}, false)
+    result = AwsCconf.combine({ctx.test_creds, ctx.test_conf}, "other", false)
 
     assert [
              "_region_",
@@ -90,22 +90,22 @@ defmodule AwsCconfTest do
   end
 
   test "values from credentials has presedence", ctx do
-    result = AwsCconf.combine("other", {ctx.test_creds, ctx.test_conf}, false)
+    result = AwsCconf.combine({ctx.test_creds, ctx.test_conf}, "other", false)
     assert result["region"] == "nor this"
 
-    result2 = AwsCconf.combine("default", {ctx.test_creds, ctx.test_conf}, false)
+    result2 = AwsCconf.combine({ctx.test_creds, ctx.test_conf}, "default", false)
     assert result2["aws_access_key_id"] == "ABC"
     assert result2["cli_pager"] == "less"
   end
 
   test "'source_profile' as be recursive map attr (default)", ctx do
-    result = AwsCconf.combine("trigger", {ctx.test_creds, ctx.test_conf})
+    result = AwsCconf.combine({ctx.test_creds, ctx.test_conf}, "trigger")
     # IO.inspect(result)
     assert %{
              "aws_access_key_id" => "abc"
            } = result["source_profile"]
 
-    result2 = AwsCconf.combine("another_trigger", {ctx.test_creds, ctx.test_conf})
+    result2 = AwsCconf.combine({ctx.test_creds, ctx.test_conf}, "another_trigger")
     # IO.inspect(result)
     assert %{
              "aws_access_key_id" => "in_conf",
@@ -114,7 +114,7 @@ defmodule AwsCconfTest do
   end
 
   test "'source_profile' as normal string attr", ctx do
-    result = AwsCconf.combine("trigger", {ctx.test_creds, ctx.test_conf}, true, false)
+    result = AwsCconf.combine({ctx.test_creds, ctx.test_conf}, "trigger", true, false)
     # IO.inspect(result)
     assert "other" = result["source_profile"]
   end

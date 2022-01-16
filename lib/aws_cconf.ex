@@ -25,8 +25,8 @@ defmodule AwsCconf do
   """
   @spec combine(String.t(), {map, map}, bool) :: map
   def combine(
-        pname \\ "default",
         {creds, config},
+        pname \\ "default",
         strict_creds_subset? \\ true,
         recurse_src_profile_attr? \\ true
       ) do
@@ -44,7 +44,7 @@ defmodule AwsCconf do
 
     case attrs do
       %{@attr_src_p => src_p} when recurse_src_profile_attr? ->
-        %{attrs | @attr_src_p => combine(src_p, {creds, config}, strict_creds_subset?, false)}
+        %{attrs | @attr_src_p => combine({creds, config}, src_p, strict_creds_subset?, false)}
 
       _ ->
         attrs
