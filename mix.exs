@@ -7,7 +7,14 @@ defmodule AwsCconf.MixProject do
       version: "0.1.0",
       elixir: "~> 1.13",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+
+      # Docs
+      name: "AwsCconf",
+      source_url: "https://github.com/dynnamitt/PROJECT",
+      homepage_url: "http://YOUR_PROJECT_HOMEPAGE",
+      # The main page in the docs
+      docs: [main: "AwsCconf", extras: ["README.md"]]
     ]
   end
 
@@ -21,7 +28,8 @@ defmodule AwsCconf.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:configparser_ex, "~> 4.0"}
+      {:configparser_ex, "~> 4.0"},
+      {:ex_doc, "~> 0.27", only: :dev, runtime: false}
     ]
   end
 end

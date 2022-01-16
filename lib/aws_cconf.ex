@@ -1,7 +1,6 @@
 defmodule AwsCconf do
   @moduledoc """
-  Combine the ~/.aws "SHARED" files
-
+  select a profile and combine parsed config attrs
   """
 
   @creds_attrs_subset [
@@ -16,22 +15,25 @@ defmodule AwsCconf do
   @attr_sso_url "sso_start_url"
 
   @doc """
-  Parse & merge config streams.
-
-  Selects a profile (in each stream) then merge the keyvalues.
+  Selects a profile (in each map) then merge the keyvalues.
 
   .aws/credentials ALWAYS come first,
-  then .aws/config (and more if appended)
+  then .aws/config
   """
-  @spec combine(String.t(), {map, map}, bool) :: map
+  @spec combine(
+          {creds :: map(), config :: map()},
+          profile_name :: String.t(),
+          strict_creds_subset? :: boolean(),
+          recurse_src_profile_attr? :: boolean()
+        ) :: map()
   def combine(
         {creds, config},
-        pname \\ "default",
+        profile_name \\ "default",
         strict_creds_subset? \\ true,
         recurse_src_profile_attr? \\ true
       ) do
     attrs =
-      [creds[pname], get_config_p(config, pname)]
+      [creds[profile_name], get_config_p(config, profile_name)]
       |> case do
         [creds_p, conf_p] when strict_creds_subset? and creds_p != nil ->
           [Map.take(creds_p, @creds_attrs_subset), conf_p]

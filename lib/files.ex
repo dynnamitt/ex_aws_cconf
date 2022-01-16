@@ -1,6 +1,6 @@
 defmodule AwsCconf.Files do
   @moduledoc """
-  Load credentials+config from ~/.aws "SHARED" files
+  Resolve,open & parse credentials+config from ~/.aws INI files
   """
 
   def env_config, do: "AWS_CONFIG_FILE"
@@ -13,9 +13,13 @@ defmodule AwsCconf.Files do
   @type overring_os_env :: String.t()
 
   @doc """
-  Resolve the path (optionally via env) then open the stream
+  Resolve the path (optionally via env)
+  then open the stream and parse as init data
   """
-  @spec resolved([path], [overring_os_env]) :: [keyword]
+  @spec resolved(
+          [ini_file :: path],
+          [env_name :: overring_os_env]
+        ) :: [keyword]
   def resolved(
         {p_creds, p_conf} \\ {@creds_path_default, @config_path_default},
         {e_creds, e_conf} \\ {env_shared_creds(), env_config()}
