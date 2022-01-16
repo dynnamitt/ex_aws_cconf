@@ -30,29 +30,21 @@ defmodule AwsCconf do
         strict_creds_subset? \\ true,
         recurse_src_profile_attr? \\ true
       ) do
-    attrs_list =
-      case [creds[pname], get_config_p(config, pname)] do
-        [nil, conf_p] ->
-          [conf_p]
-
-        [creds_p, nil] ->
-          [creds_p]
-
-        [creds_p, conf_p] when strict_creds_subset? ->
+    attrs =
+      [creds[pname], get_config_p(config, pname)]
+      |> case do
+        [creds_p, conf_p] when strict_creds_subset? and creds_p != nil ->
           [Map.take(creds_p, @creds_attrs_subset), conf_p]
 
         [creds_p, conf_p] ->
           [creds_p, conf_p]
       end
-
-    attrs = merge_profile_attrs(attrs_list)
+      |> Enum.reject(&(&1 == nil))
+      |> Enum.reduce(fn x, acc -> Enum.into(acc, x) end)
 
     case attrs do
       %{@attr_src_p => src_p} when recurse_src_profile_attr? ->
-        %{
-          attrs
-          | @attr_src_p => combine(src_p, {creds, config}, strict_creds_subset?, false)
-        }
+        %{attrs | @attr_src_p => combine(src_p, {creds, config}, strict_creds_subset?, false)}
 
       _ ->
         attrs
@@ -69,11 +61,5 @@ defmodule AwsCconf do
     # TODO compile regex to avoid special-char injection
     |> Enum.find(&String.match?(&1, ~r/profile\ *#{pname}/))
     |> then(&profiles[&1])
-  end
-
-  defp merge_profile_attrs(profile_maps) do
-    profile_maps
-    # |> IO.inspect()
-    |> Enum.reduce(fn x, acc -> Enum.into(acc, x) end)
   end
 end
