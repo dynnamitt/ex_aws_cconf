@@ -12,6 +12,8 @@ defmodule AwsCconf do
   # TRIGGERS for new "STS Session credentials"
   @attr_src_p "source_profile"
   @attr_mfa "mfa_serial"
+
+  # https://stackoverflow.com/questions/62311866/how-to-use-the-aws-python-sdk-while-connecting-via-sso-credentials
   @attr_sso_url "sso_start_url"
 
   @doc """
